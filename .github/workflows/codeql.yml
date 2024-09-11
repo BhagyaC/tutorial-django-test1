@@ -11,24 +11,15 @@ on:
 permissions:
   security-events: write
   contents: read
-  actions: read
-  packages: read  # Required to fetch internal or private CodeQL packs
 
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
-    runs-on: ${{ matrix.os }}
-
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'swift' ]
-        os:
-          - ubuntu-latest
-          - macos-latest  # Needed for Swift analysis
-        exclude:
-          - os: macos-latest
-            language: [ 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby' ]
+        language: [ 'python', 'javascript-typescript', 'go' ]  # Only include languages relevant to your project
 
     steps:
     - name: Checkout repository
@@ -38,20 +29,14 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        # You can define build-mode if specific customization is needed
-        # build-mode: manual or your custom mode
-        # Custom queries can also be specified here:
-        # queries: +security-extended,security-and-quality
 
     - name: Build Code (if necessary)
-      if: matrix.language == 'c-cpp' || matrix.language == 'go'
+      if: matrix.language == 'go' || matrix.language == 'c-cpp'
       run: |
-        # Include build commands for compiled languages
-        make bootstrap
-        make release
+        make clean
+        make build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{ matrix.language }}"
-
